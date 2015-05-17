@@ -6,19 +6,19 @@
 typedef enum{
     buttPressed,
     buttRelase,
-    buttFalling,     // кнопку нажали
-    buttRaising,     // кнопку отпустили
+    buttFalling,     // РєРЅРѕРїРєСѓ РЅР°Р¶Р°Р»Рё
+    buttRaising,     // РєРЅРѕРїРєСѓ РѕС‚РїСѓСЃС‚РёР»Рё
 }buttonStates_enum;
 
-// действия по событию кнопки
+// РґРµР№СЃС‚РІРёСЏ РїРѕ СЃРѕР±С‹С‚РёСЋ РєРЅРѕРїРєРё
 typedef enum{
-    buttNon,      // нет действия
+    buttNon,      // РЅРµС‚ РґРµР№СЃС‚РІРёСЏ
     buttSwitch,   
     buttOn,
     buttOff,
 }buttonEction_enum;
 
-// работа со светодоиодом
+// СЂР°Р±РѕС‚Р° СЃРѕ СЃРІРµС‚РѕРґРѕРёРѕРґРѕРј
 typedef enum{
     ledOff_en,  // 0
     ledOn_en,   // 1
@@ -30,7 +30,7 @@ typedef enum{
     ledManual_en, // 7
 }ledMode_enum;
 
-#define BUTT_FILTER_TIME    100  // время антидребезгового фильтра в мс
+#define BUTT_FILTER_TIME    100  // РІСЂРµРјСЏ Р°РЅС‚РёРґСЂРµР±РµР·РіРѕРІРѕРіРѕ С„РёР»СЊС‚СЂР° РІ РјСЃ
 
 
 uint16_t buttEction(buttonEction_enum butt, uint16_t state);
@@ -40,8 +40,8 @@ void buttonInit(void);
 buttonStates_enum getPinButtonState(void);
 
 typedef enum{
-    toggleOnOff = 0,    // любой фронт переключает выход
-    fallingEdgeOnOff,   // только нажатие перелючает
+    toggleOnOff = 0,    // Р»СЋР±РѕР№ С„СЂРѕРЅС‚ РїРµСЂРµРєР»СЋС‡Р°РµС‚ РІС‹С…РѕРґ
+    fallingEdgeOnOff,   // С‚РѕР»СЊРєРѕ РЅР°Р¶Р°С‚РёРµ РїРµСЂРµР»СЋС‡Р°РµС‚
 }buttonMode_enum;
 
 void TimModbusEn(void);
@@ -49,7 +49,7 @@ void TimModbusDis(void);
 void UART_Send(u8 *buff, u8 len);
 
 //============================================
-// модбасные регистры
+// РјРѕРґР±Р°СЃРЅС‹Рµ СЂРµРіРёСЃС‚СЂС‹
 //============================================
 typedef enum {
 	readOnly,
@@ -58,12 +58,12 @@ typedef enum {
 }rwMask_enum;
 
 typedef struct {
-	uint16_t *pnt;		// указатель на данные
-	uint16_t minLim;		// минимальное значение
-	uint16_t maxLim;		// максимальное значение
-	rwMask_enum rwMask;		// маска чтения/записи
-	uint8_t eeprom;		// признак хранения данных в eeprom
-	uint16_t defVal;	// дефолтовое значение регистра
+	uint16_t *pnt;		// СѓРєР°Р·Р°С‚РµР»СЊ РЅР° РґР°РЅРЅС‹Рµ
+	uint16_t minLim;		// РјРёРЅРёРјР°Р»СЊРЅРѕРµ Р·РЅР°С‡РµРЅРёРµ
+	uint16_t maxLim;		// РјР°РєСЃРёРјР°Р»СЊРЅРѕРµ Р·РЅР°С‡РµРЅРёРµ
+	rwMask_enum rwMask;		// РјР°СЃРєР° С‡С‚РµРЅРёСЏ/Р·Р°РїРёСЃРё
+	uint8_t eeprom;		// РїСЂРёР·РЅР°Рє С…СЂР°РЅРµРЅРёСЏ РґР°РЅРЅС‹С… РІ eeprom
+	uint16_t defVal;	// РґРµС„РѕР»С‚РѕРІРѕРµ Р·РЅР°С‡РµРЅРёРµ СЂРµРіРёСЃС‚СЂР°
 }modbusReg_type;
 
 uint8_t mbRegsInit(void);

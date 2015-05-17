@@ -1,8 +1,8 @@
 /*
  * eepromDrv.h
  *
- *	драйвер eeprom для stm8
- *  реализует отлаженную запись через очередь
+ *	РґСЂР°Р№РІРµСЂ eeprom РґР»СЏ stm8
+ *  СЂРµР°Р»РёР·СѓРµС‚ РѕС‚Р»Р°Р¶РµРЅРЅСѓСЋ Р·Р°РїРёСЃСЊ С‡РµСЂРµР· РѕС‡РµСЂРµРґСЊ
  *
  *  Created on: 04.04.2013
  *      Author: dima
@@ -12,7 +12,7 @@
 #define EEPROMDRV_H_
 #include "stdint.h"
 
-#define QEUE_LENGTH	3	// длинна очереди
+#define QEUE_LENGTH	3	// РґР»РёРЅРЅР° РѕС‡РµСЂРµРґРё
 
 typedef struct{
 	uint16_t addr;
@@ -20,10 +20,10 @@ typedef struct{
 }eepromQeue_type;
 
 typedef struct{
-	eepromQeue_type writeQeue[QEUE_LENGTH];	// очередь на запись
-	uint8_t qeueStart;		// начало очерди
-	uint8_t qeueEnd;		// конец очереди
-	uint8_t qeueNums;		// количество данных в очереди
+	eepromQeue_type writeQeue[QEUE_LENGTH];	// РѕС‡РµСЂРµРґСЊ РЅР° Р·Р°РїРёСЃСЊ
+	uint8_t qeueStart;		// РЅР°С‡Р°Р»Рѕ РѕС‡РµСЂРґРё
+	uint8_t qeueEnd;		// РєРѕРЅРµС† РѕС‡РµСЂРµРґРё
+	uint8_t qeueNums;		// РєРѕР»РёС‡РµСЃС‚РІРѕ РґР°РЅРЅС‹С… РІ РѕС‡РµСЂРµРґРё
 }eeprom_type;
 
 

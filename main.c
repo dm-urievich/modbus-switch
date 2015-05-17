@@ -1,7 +1,7 @@
 //#define HSE_VALUE 16000000
 
 #include "stm8s.h"
-#include "intrinsics.h"   // здесь функция итерапт энейбл
+#include "intrinsics.h"   // Р·РґРµСЃСЊ С„СѓРЅРєС†РёСЏ РёС‚РµСЂР°РїС‚ СЌРЅРµР№Р±Р»
 #include "main.h"
 #include "eepromDrv.h"
 #include "mb.h"
@@ -11,27 +11,27 @@
 
 u16 reservReg;
 
-uint16_t state;          // текущее состояние выхода
-uint16_t switcher;       // "переключалка", сама обнуляется
-uint16_t buttModeFall;     // режим работы локальной кнопки по нажатию 
-uint16_t buttModeRais;     // режим работы локальной кнопки по отпусканию
+uint16_t state;          // С‚РµРєСѓС‰РµРµ СЃРѕСЃС‚РѕСЏРЅРёРµ РІС‹С…РѕРґР°
+uint16_t switcher;       // "РїРµСЂРµРєР»СЋС‡Р°Р»РєР°", СЃР°РјР° РѕР±РЅСѓР»СЏРµС‚СЃСЏ
+uint16_t buttModeFall;     // СЂРµР¶РёРј СЂР°Р±РѕС‚С‹ Р»РѕРєР°Р»СЊРЅРѕР№ РєРЅРѕРїРєРё РїРѕ РЅР°Р¶Р°С‚РёСЋ 
+uint16_t buttModeRais;     // СЂРµР¶РёРј СЂР°Р±РѕС‚С‹ Р»РѕРєР°Р»СЊРЅРѕР№ РєРЅРѕРїРєРё РїРѕ РѕС‚РїСѓСЃРєР°РЅРёСЋ
 
-// управление светодиодом
-uint16_t ledState;      // сотояние светодиода
-uint16_t ledMode;       // режим работы
+// СѓРїСЂР°РІР»РµРЅРёРµ СЃРІРµС‚РѕРґРёРѕРґРѕРј
+uint16_t ledState;      // СЃРѕС‚РѕСЏРЅРёРµ СЃРІРµС‚РѕРґРёРѕРґР°
+uint16_t ledMode;       // СЂРµР¶РёРј СЂР°Р±РѕС‚С‹
 
-uint16_t mbAddr;         // модбасный адрес
-uint16_t mbBaudrate;     // скорость, согласно принятому формату
-uint16_t eprVirgin;	    // признак неисполозованности eeprom
+uint16_t mbAddr;         // РјРѕРґР±Р°СЃРЅС‹Р№ Р°РґСЂРµСЃ
+uint16_t mbBaudrate;     // СЃРєРѕСЂРѕСЃС‚СЊ, СЃРѕРіР»Р°СЃРЅРѕ РїСЂРёРЅСЏС‚РѕРјСѓ С„РѕСЂРјР°С‚Сѓ
+uint16_t eprVirgin;	    // РїСЂРёР·РЅР°Рє РЅРµРёСЃРїРѕР»РѕР·РѕРІР°РЅРЅРѕСЃС‚Рё eeprom
 
-uint16_t button;         // кнопка, текущее состояние, отфильтрованное
-uint16_t adcData;       // данные с АЦП
+uint16_t button;         // РєРЅРѕРїРєР°, С‚РµРєСѓС‰РµРµ СЃРѕСЃС‚РѕСЏРЅРёРµ, РѕС‚С„РёР»СЊС‚СЂРѕРІР°РЅРЅРѕРµ
+uint16_t adcData;       // РґР°РЅРЅС‹Рµ СЃ РђР¦Рџ
 
-// уникальный идентификатор, может пригодится
+// СѓРЅРёРєР°Р»СЊРЅС‹Р№ РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ, РјРѕР¶РµС‚ РїСЂРёРіРѕРґРёС‚СЃСЏ
 uint16_t idModule_1;
 uint16_t idModule_2;
 
-// тип девайса, типа геркон, датчик движения, датчик температуры
+// С‚РёРї РґРµРІР°Р№СЃР°, С‚РёРїР° РіРµСЂРєРѕРЅ, РґР°С‚С‡РёРє РґРІРёР¶РµРЅРёСЏ, РґР°С‚С‡РёРє С‚РµРјРїРµСЂР°С‚СѓСЂС‹
 uint16_t typeDev;
 
 eeprom_type eeprom;
@@ -40,42 +40,42 @@ eeprom_type eeprom;
 const char modbusIdString[] = "BYCE eSwith - v1.2";
 //****************************************************************************
 modbusReg_type tableRegs[] = {
-/*0x0000*/  {(uint16_t*) &state, 	0x0000, 0x0001, readWrite, 0, 0x0000},  // Состояние выхода Int
-/*0x0001*/  {(uint16_t*) &switcher, 	0x0000, 0x0001, readWrite, 0, 0x0000},  // Переключатель Int
-/*0x0002*/  {(uint16_t*) &button,       0x0000, 0x0001, readWrite, 0, 0x0000},  // Состояние дискр. вх. Int
-/*0x0003*/  {(uint16_t*) &buttModeFall, 0x0000, 0x00FF, readWrite, 1, 0x0000},  // Задний фротн диск. вх. Text
-                                                                                // 0 - Ничего не делать
-                                                                                // 1 - Переключить
-                                                                                // 2 - Включить
-                                                                                // 3 - Выключить
-/*0x0004*/  {(uint16_t*) &buttModeRais, 0x0000, 0x00FF, readWrite, 1, 0x0000},  // Передний фротн диск. вх. Text
-                                                                                // 0 - Ничего не делать
-                                                                                // 1 - Переключить
-                                                                                // 2 - Включить
-                                                                                // 3 - Выключить	
-/*0x0005*/  {(uint16_t*) &adcData,   0x0000, 0xFFFF, readWrite, 0, 0x0000},     // Данные с АЦП Int
-/*0x0006*/  {(uint16_t*) &ledState,  0x0000, 0x0001, readWrite, 0, 0x0000},     // Состояние светодиода  Int
-/*0x0007*/  {(uint16_t*) &ledMode,   0x0000, 0x0008, readWrite, 1, 0x0000},     // Режим работы светодиода  Text
-                                                                                // 0 - Всегда выключен
-                                                                                // 1 - Всегда включен
-                                                                                // 2 - Индикация обмена
-                                                                                // 3 - Повторение выхода
-                                                                                // 4 - Инверсия выхода
-                                                                                // 5 - Повторение дискр. вх.
-                                                                                // 6 - Инверсия дискр. вх.
-                                                                                // 7 - Ручное управление
-/*0x0008*/  {(uint16_t*) &reservReg, 0x0000, 0xFFFF, readWrite, 0, 0x0000},     // Резерв  Reserv
-/*0x0009*/  {(uint16_t*) &mbAddr,    0x0000, 0x00FF, readWrite, 1, 0x0001},     // Адрес в сети Int
-/*0x000A*/  {(uint16_t*) &mbBaudrate,0x0000, 0xFFFF, readWrite, 1, 1152},       // Скорость обмена Text
+/*0x0000*/  {(uint16_t*) &state, 	0x0000, 0x0001, readWrite, 0, 0x0000},  // РЎРѕСЃС‚РѕСЏРЅРёРµ РІС‹С…РѕРґР° Int
+/*0x0001*/  {(uint16_t*) &switcher, 	0x0000, 0x0001, readWrite, 0, 0x0000},  // РџРµСЂРµРєР»СЋС‡Р°С‚РµР»СЊ Int
+/*0x0002*/  {(uint16_t*) &button,       0x0000, 0x0001, readWrite, 0, 0x0000},  // РЎРѕСЃС‚РѕСЏРЅРёРµ РґРёСЃРєСЂ. РІС…. Int
+/*0x0003*/  {(uint16_t*) &buttModeFall, 0x0000, 0x00FF, readWrite, 1, 0x0000},  // Р—Р°РґРЅРёР№ С„СЂРѕС‚РЅ РґРёСЃРє. РІС…. Text
+                                                                                // 0 - РќРёС‡РµРіРѕ РЅРµ РґРµР»Р°С‚СЊ
+                                                                                // 1 - РџРµСЂРµРєР»СЋС‡РёС‚СЊ
+                                                                                // 2 - Р’РєР»СЋС‡РёС‚СЊ
+                                                                                // 3 - Р’С‹РєР»СЋС‡РёС‚СЊ
+/*0x0004*/  {(uint16_t*) &buttModeRais, 0x0000, 0x00FF, readWrite, 1, 0x0000},  // РџРµСЂРµРґРЅРёР№ С„СЂРѕС‚РЅ РґРёСЃРє. РІС…. Text
+                                                                                // 0 - РќРёС‡РµРіРѕ РЅРµ РґРµР»Р°С‚СЊ
+                                                                                // 1 - РџРµСЂРµРєР»СЋС‡РёС‚СЊ
+                                                                                // 2 - Р’РєР»СЋС‡РёС‚СЊ
+                                                                                // 3 - Р’С‹РєР»СЋС‡РёС‚СЊ	
+/*0x0005*/  {(uint16_t*) &adcData,   0x0000, 0xFFFF, readWrite, 0, 0x0000},     // Р”Р°РЅРЅС‹Рµ СЃ РђР¦Рџ Int
+/*0x0006*/  {(uint16_t*) &ledState,  0x0000, 0x0001, readWrite, 0, 0x0000},     // РЎРѕСЃС‚РѕСЏРЅРёРµ СЃРІРµС‚РѕРґРёРѕРґР°  Int
+/*0x0007*/  {(uint16_t*) &ledMode,   0x0000, 0x0008, readWrite, 1, 0x0000},     // Р РµР¶РёРј СЂР°Р±РѕС‚С‹ СЃРІРµС‚РѕРґРёРѕРґР°  Text
+                                                                                // 0 - Р’СЃРµРіРґР° РІС‹РєР»СЋС‡РµРЅ
+                                                                                // 1 - Р’СЃРµРіРґР° РІРєР»СЋС‡РµРЅ
+                                                                                // 2 - РРЅРґРёРєР°С†РёСЏ РѕР±РјРµРЅР°
+                                                                                // 3 - РџРѕРІС‚РѕСЂРµРЅРёРµ РІС‹С…РѕРґР°
+                                                                                // 4 - РРЅРІРµСЂСЃРёСЏ РІС‹С…РѕРґР°
+                                                                                // 5 - РџРѕРІС‚РѕСЂРµРЅРёРµ РґРёСЃРєСЂ. РІС….
+                                                                                // 6 - РРЅРІРµСЂСЃРёСЏ РґРёСЃРєСЂ. РІС….
+                                                                                // 7 - Р СѓС‡РЅРѕРµ СѓРїСЂР°РІР»РµРЅРёРµ
+/*0x0008*/  {(uint16_t*) &reservReg, 0x0000, 0xFFFF, readWrite, 0, 0x0000},     // Р РµР·РµСЂРІ  Reserv
+/*0x0009*/  {(uint16_t*) &mbAddr,    0x0000, 0x00FF, readWrite, 1, 0x0001},     // РђРґСЂРµСЃ РІ СЃРµС‚Рё Int
+/*0x000A*/  {(uint16_t*) &mbBaudrate,0x0000, 0xFFFF, readWrite, 1, 1152},       // РЎРєРѕСЂРѕСЃС‚СЊ РѕР±РјРµРЅР° Text
                                                                                 // 96 - 9600
                                                                                 // 192 - 19200
                                                                                 // 384 - 38400
                                                                                 // 576 - 57600
                                                                                 // 1152 - 115200
-/*0x000A*/  {(uint16_t*) &idModule_1,0x0000, 0xFFFF, readWrite, 1, 0x0000},     // Уникальный идентификатор 1 слово Int
-/*0x000A*/  {(uint16_t*) &idModule_2,0x0000, 0xFFFF, readWrite, 1, 0x0000},     // Уникальный идентификатор 2 слово Int
-/*0x000A*/  {(uint16_t*) &typeDev   ,0x0000, 0xFFFF, readWrite, 1, 0x0000},     // Тип девайса Int
-/*0x000B*/  {(uint16_t*) &eprVirgin, 0x0000, 0xFFFF, readWrite, 1, 0xAA55},     // Резерв  Reserv
+/*0x000A*/  {(uint16_t*) &idModule_1,0x0000, 0xFFFF, readWrite, 1, 0x0000},     // РЈРЅРёРєР°Р»СЊРЅС‹Р№ РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ 1 СЃР»РѕРІРѕ Int
+/*0x000A*/  {(uint16_t*) &idModule_2,0x0000, 0xFFFF, readWrite, 1, 0x0000},     // РЈРЅРёРєР°Р»СЊРЅС‹Р№ РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ 2 СЃР»РѕРІРѕ Int
+/*0x000A*/  {(uint16_t*) &typeDev   ,0x0000, 0xFFFF, readWrite, 1, 0x0000},     // РўРёРї РґРµРІР°Р№СЃР° Int
+/*0x000B*/  {(uint16_t*) &eprVirgin, 0x0000, 0xFFFF, readWrite, 1, 0xAA55},     // Р РµР·РµСЂРІ  Reserv
 /*0x000C*/
 };
 
@@ -83,7 +83,7 @@ modbusReg_type tableRegs[] = {
 #define REG_INPUT_START 0
 #define REG_HOLDING_START REG_INPUT_START
 
-// количество регистров в модбасе
+// РєРѕР»РёС‡РµСЃС‚РІРѕ СЂРµРіРёСЃС‚СЂРѕРІ РІ РјРѕРґР±Р°СЃРµ
 static u8 usRegInputNregs = sizeof(tableRegs) / sizeof(modbusReg_type);
 
 void main( void )
@@ -91,7 +91,7 @@ void main( void )
     buttonStates_enum tekButton;
   
   eMBErrorCode eStatus;
-	//Инициализируем CLK
+	//РРЅРёС†РёР°Р»РёР·РёСЂСѓРµРј CLK
 	CLK_HSECmd(ENABLE);
         
   CLK_ClockSwitchConfig(CLK_SWITCHMODE_AUTO,
@@ -99,22 +99,22 @@ void main( void )
                          DISABLE,
                          CLK_CURRENTCLOCKSTATE_ENABLE);
 
-  //CLK->SWCR |= CLK_SWCR_SWEN;  //Разрешаем автопереключение источника Clock при неисправности генератора
+  //CLK->SWCR |= CLK_SWCR_SWEN;  //Р Р°Р·СЂРµС€Р°РµРј Р°РІС‚РѕРїРµСЂРµРєР»СЋС‡РµРЅРёРµ РёСЃС‚РѕС‡РЅРёРєР° Clock РїСЂРё РЅРµРёСЃРїСЂР°РІРЅРѕСЃС‚Рё РіРµРЅРµСЂР°С‚РѕСЂР°
 
-  //CLK->CKDIVR = 0;             //Делители частоты внутреннего и внешнего генератора на 1 - частота ядра максимальная
+  //CLK->CKDIVR = 0;             //Р”РµР»РёС‚РµР»Рё С‡Р°СЃС‚РѕС‚С‹ РІРЅСѓС‚СЂРµРЅРЅРµРіРѕ Рё РІРЅРµС€РЅРµРіРѕ РіРµРЅРµСЂР°С‚РѕСЂР° РЅР° 1 - С‡Р°СЃС‚РѕС‚Р° СЏРґСЂР° РјР°РєСЃРёРјР°Р»СЊРЅР°СЏ
     CLK_SYSCLKConfig(CLK_PRESCALER_CPUDIV1);
     CLK_PeripheralClockConfig(CLK_PERIPHERAL_UART2, ENABLE);
     CLK_PeripheralClockConfig(CLK_PERIPHERAL_TIMER4, ENABLE);
     CLK_PeripheralClockConfig(CLK_PERIPHERAL_TIMER2, ENABLE);
 
-   // светодиод
-  GPIOB->DDR = 1 << 5;   // Ножка PD0 конфигурируется на вывод
-  GPIOB->CR1 = 1 << 5;   // Выход типа Push-pull
+   // СЃРІРµС‚РѕРґРёРѕРґ
+  GPIOB->DDR = 1 << 5;   // РќРѕР¶РєР° PD0 РєРѕРЅС„РёРіСѓСЂРёСЂСѓРµС‚СЃСЏ РЅР° РІС‹РІРѕРґ
+  GPIOB->CR1 = 1 << 5;   // Р’С‹С…РѕРґ С‚РёРїР° Push-pull
   GPIOB->CR2 = 1 << 5;
 
-  // транзистор
-  GPIOC->DDR = 1 << 1;   // Ножка PD0 конфигурируется на вывод
-  GPIOC->CR1 = 1 << 1;   // Выход типа Push-pull
+  // С‚СЂР°РЅР·РёСЃС‚РѕСЂ
+  GPIOC->DDR = 1 << 1;   // РќРѕР¶РєР° PD0 РєРѕРЅС„РёРіСѓСЂРёСЂСѓРµС‚СЃСЏ РЅР° РІС‹РІРѕРґ
+  GPIOC->CR1 = 1 << 1;   // Р’С‹С…РѕРґ С‚РёРїР° Push-pull
   GPIOC->CR2 = 1 << 1;
 
     eepromInit();
@@ -142,12 +142,12 @@ void main( void )
               ENABLE);
     ADC1_StartConversion();
     
-    for(;;)              // Бесконечный цикл
+    for(;;)              // Р‘РµСЃРєРѕРЅРµС‡РЅС‹Р№ С†РёРєР»
     {
-        //GPIOB->ODR ^= 1 << 5;   // Переключение уровня напряжения на ножке на противоположное
-                                      // при помощи операции Исключающее ИЛИ (XOR)
+        //GPIOB->ODR ^= 1 << 5;   // РџРµСЂРµРєР»СЋС‡РµРЅРёРµ СѓСЂРѕРІРЅСЏ РЅР°РїСЂСЏР¶РµРЅРёСЏ РЅР° РЅРѕР¶РєРµ РЅР° РїСЂРѕС‚РёРІРѕРїРѕР»РѕР¶РЅРѕРµ
+                                      // РїСЂРё РїРѕРјРѕС‰Рё РѕРїРµСЂР°С†РёРё РСЃРєР»СЋС‡Р°СЋС‰РµРµ РР›Р (XOR)
 
-        // тут еще АЦП считываем
+        // С‚СѓС‚ РµС‰Рµ РђР¦Рџ СЃС‡РёС‚С‹РІР°РµРј
         if (ADC1_GetFlagStatus(ADC1_FLAG_EOC)) {
             adcData = ADC1_GetConversionValue();
             ADC1_ClearFlag(ADC1_FLAG_EOC);   
@@ -231,7 +231,7 @@ void main( void )
     }
 }
 
-// обработка события кнопки
+// РѕР±СЂР°Р±РѕС‚РєР° СЃРѕР±С‹С‚РёСЏ РєРЅРѕРїРєРё
 uint16_t buttEction(buttonEction_enum butt, uint16_t state)
 {
   switch (butt) {
@@ -252,20 +252,20 @@ uint16_t buttEction(buttonEction_enum butt, uint16_t state)
   return state;
 }
   
-// ножку на прием
+// РЅРѕР¶РєСѓ РЅР° РїСЂРёРµРј
 void setRx(void)
 {
   GPIOD->ODR &= ~(1 << 7);
 }
 
-// ножку на передачу
+// РЅРѕР¶РєСѓ РЅР° РїРµСЂРµРґР°С‡Сѓ
 void setTx(void)
 {
   GPIOD->ODR |= (1 << 7);
 }
 
 //===============================================
-// 4 функция, чтение регистров
+// 4 С„СѓРЅРєС†РёСЏ, С‡С‚РµРЅРёРµ СЂРµРіРёСЃС‚СЂРѕРІ
 //===============================================
 eMBErrorCode
 eMBRegInputCB( UCHAR * pucRegBuffer, USHORT usAddress, USHORT usNRegs )
@@ -273,7 +273,7 @@ eMBRegInputCB( UCHAR * pucRegBuffer, USHORT usAddress, USHORT usNRegs )
     eMBErrorCode    eStatus = MB_ENOERR;
     int             iRegIndex;
 
-    usAddress--;  // в библиотеке какого-то хера делатеся ++
+    usAddress--;  // РІ Р±РёР±Р»РёРѕС‚РµРєРµ РєР°РєРѕРіРѕ-С‚Рѕ С…РµСЂР° РґРµР»Р°С‚РµСЃСЏ ++
     
     if( ( usAddress >= REG_INPUT_START )
         && ( usAddress + usNRegs <= REG_INPUT_START + usRegInputNregs ) )
@@ -288,7 +288,7 @@ eMBRegInputCB( UCHAR * pucRegBuffer, USHORT usAddress, USHORT usNRegs )
 					( unsigned char )( *(tableRegs[iRegIndex].pnt) & 0xFF );
         	}
         	else {
-        		eStatus = MB_ENOREG;	// возможно заменить на другую ошибку
+        		eStatus = MB_ENOREG;	// РІРѕР·РјРѕР¶РЅРѕ Р·Р°РјРµРЅРёС‚СЊ РЅР° РґСЂСѓРіСѓСЋ РѕС€РёР±РєСѓ
         	}
             iRegIndex++;
             usNRegs--;
@@ -303,8 +303,8 @@ eMBRegInputCB( UCHAR * pucRegBuffer, USHORT usAddress, USHORT usNRegs )
 }
 
 //================================================
-// чтение и запись регистра
-// используется в функциях 3, 23 (0x17), 6, 16 (0x10)
+// С‡С‚РµРЅРёРµ Рё Р·Р°РїРёСЃСЊ СЂРµРіРёСЃС‚СЂР°
+// РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ РІ С„СѓРЅРєС†РёСЏС… 3, 23 (0x17), 6, 16 (0x10)
 //================================================
 eMBErrorCode
 eMBRegHoldingCB( UCHAR * pucRegBuffer, USHORT usAddress, USHORT usNRegs,
@@ -313,7 +313,7 @@ eMBRegHoldingCB( UCHAR * pucRegBuffer, USHORT usAddress, USHORT usNRegs,
     eMBErrorCode    eStatus = MB_ENOERR;
     int             iRegIndex;
 
-    usAddress--;  // в библиотеке какого-то хера делатеся ++
+    usAddress--;  // РІ Р±РёР±Р»РёРѕС‚РµРєРµ РєР°РєРѕРіРѕ-С‚Рѕ С…РµСЂР° РґРµР»Р°С‚РµСЃСЏ ++
     
     if( ( usAddress >= REG_HOLDING_START ) &&
         ( usAddress + usNRegs <= REG_HOLDING_START + usRegInputNregs ) )
@@ -323,8 +323,8 @@ eMBRegHoldingCB( UCHAR * pucRegBuffer, USHORT usAddress, USHORT usNRegs,
         {
             /* Pass current register values to the protocol stack. */
         case MB_REG_READ:
-        	// у мен не различаются Holding и Input регистры
-        	// вызываю функцию чтения регистров
+        	// Сѓ РјРµРЅ РЅРµ СЂР°Р·Р»РёС‡Р°СЋС‚СЃСЏ Holding Рё Input СЂРµРіРёСЃС‚СЂС‹
+        	// РІС‹Р·С‹РІР°СЋ С„СѓРЅРєС†РёСЋ С‡С‚РµРЅРёСЏ СЂРµРіРёСЃС‚СЂРѕРІ
         	eStatus = eMBRegInputCB(pucRegBuffer, usAddress+1, usNRegs);
         	/*
             while( usNRegs > 0 )
@@ -351,7 +351,7 @@ eMBRegHoldingCB( UCHAR * pucRegBuffer, USHORT usAddress, USHORT usNRegs,
             		}
             	}
             	else {
-            		eStatus = MB_ENOREG;	// возможно заменить на другую ошибку
+            		eStatus = MB_ENOREG;	// РІРѕР·РјРѕР¶РЅРѕ Р·Р°РјРµРЅРёС‚СЊ РЅР° РґСЂСѓРіСѓСЋ РѕС€РёР±РєСѓ
             	}
             	iRegIndex++;
             	usNRegs--;
@@ -367,7 +367,7 @@ eMBRegHoldingCB( UCHAR * pucRegBuffer, USHORT usAddress, USHORT usNRegs,
 }
 
 //================================================
-// для работы с битами, у меня не используется
+// РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ Р±РёС‚Р°РјРё, Сѓ РјРµРЅСЏ РЅРµ РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ
 //================================================
 eMBErrorCode
 eMBRegCoilsCB( UCHAR * pucRegBuffer, USHORT usAddress, USHORT usNCoils,
@@ -377,8 +377,8 @@ eMBRegCoilsCB( UCHAR * pucRegBuffer, USHORT usAddress, USHORT usNCoils,
 }
 
 //================================================
-// 2 функция, чтение дискретных входов
-// не используется
+// 2 С„СѓРЅРєС†РёСЏ, С‡С‚РµРЅРёРµ РґРёСЃРєСЂРµС‚РЅС‹С… РІС…РѕРґРѕРІ
+// РЅРµ РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ
 //================================================
 eMBErrorCode
 eMBRegDiscreteCB( UCHAR * pucRegBuffer, USHORT usAddress, USHORT usNDiscrete )
@@ -387,8 +387,8 @@ eMBRegDiscreteCB( UCHAR * pucRegBuffer, USHORT usAddress, USHORT usNDiscrete )
 }
 
 /*
- * поиск индекса в массиве модбасного регистра
- * (для записи в eeprom, идекс это адрес регистра в eeprom)
+ * РїРѕРёСЃРє РёРЅРґРµРєСЃР° РІ РјР°СЃСЃРёРІРµ РјРѕРґР±Р°СЃРЅРѕРіРѕ СЂРµРіРёСЃС‚СЂР°
+ * (РґР»СЏ Р·Р°РїРёСЃРё РІ eeprom, РёРґРµРєСЃ СЌС‚Рѕ Р°РґСЂРµСЃ СЂРµРіРёСЃС‚СЂР° РІ eeprom)
  */
 uint8_t findReg(uint16_t *pnt)
 {
@@ -402,17 +402,17 @@ uint8_t findReg(uint16_t *pnt)
 }
 
 /*
- * инициализация модбасных регистров
- * если eeprom чиста - запись дефолтовых знаений
+ * РёРЅРёС†РёР°Р»РёР·Р°С†РёСЏ РјРѕРґР±Р°СЃРЅС‹С… СЂРµРіРёСЃС‚СЂРѕРІ
+ * РµСЃР»Рё eeprom С‡РёСЃС‚Р° - Р·Р°РїРёСЃСЊ РґРµС„РѕР»С‚РѕРІС‹С… Р·РЅР°РµРЅРёР№
  */
 uint8_t mbRegsInit(void)
 {
 	int i;
 	i = findReg(&eprVirgin);
 	eprVirgin = eepromRead(i);
-	if (eprVirgin != tableRegs[i].defVal) {	// eeprom не юзаная или специально обнулена
+	if (eprVirgin != tableRegs[i].defVal) {	// eeprom РЅРµ СЋР·Р°РЅР°СЏ РёР»Рё СЃРїРµС†РёР°Р»СЊРЅРѕ РѕР±РЅСѓР»РµРЅР°
 		for (i = 0; i < usRegInputNregs; i++) {
-			if (tableRegs[i].eeprom) {				// записываем только то что должно там храниться
+			if (tableRegs[i].eeprom) {				// Р·Р°РїРёСЃС‹РІР°РµРј С‚РѕР»СЊРєРѕ С‚Рѕ С‡С‚Рѕ РґРѕР»Р¶РЅРѕ С‚Р°Рј С…СЂР°РЅРёС‚СЊСЃСЏ
 				eepromWriteSpi(i, tableRegs[i].defVal);
 				while (!isEepromReady())
 					;
@@ -420,7 +420,7 @@ uint8_t mbRegsInit(void)
 		}
 	}
 
-	// инициализацмия всех переменных программы
+	// РёРЅРёС†РёР°Р»РёР·Р°С†РјРёСЏ РІСЃРµС… РїРµСЂРµРјРµРЅРЅС‹С… РїСЂРѕРіСЂР°РјРјС‹
 	for (i = 0; i < usRegInputNregs; i++) {
 		if (tableRegs[i].eeprom) {
 			*(tableRegs[i].pnt) = eepromRead(i);
@@ -446,7 +446,7 @@ void LEDoff(void)
 }
 
 /*
-* возврашает состояние кнопки
+* РІРѕР·РІСЂР°С€Р°РµС‚ СЃРѕСЃС‚РѕСЏРЅРёРµ РєРЅРѕРїРєРё
 */
 buttonStates_enum getButtState(void)
 {
@@ -473,7 +473,7 @@ buttonStates_enum getButtState(void)
 }
 
 /*
-* антидребезговый фильтр
+* Р°РЅС‚РёРґСЂРµР±РµР·РіРѕРІС‹Р№ С„РёР»СЊС‚СЂ
 */
 void buttonPoll(void)
 {
@@ -500,21 +500,21 @@ void buttonPoll(void)
             }
         }
         
-        // при включенном АЦП дискр. вход не считывается
-        // АЦП выключается в основном цикле после окончания
-        // преоборазования, что гарантированно раньше следующего
-        // попадания сюда
+        // РїСЂРё РІРєР»СЋС‡РµРЅРЅРѕРј РђР¦Рџ РґРёСЃРєСЂ. РІС…РѕРґ РЅРµ СЃС‡РёС‚С‹РІР°РµС‚СЃСЏ
+        // РђР¦Рџ РІС‹РєР»СЋС‡Р°РµС‚СЃСЏ РІ РѕСЃРЅРѕРІРЅРѕРј С†РёРєР»Рµ РїРѕСЃР»Рµ РѕРєРѕРЅС‡Р°РЅРёСЏ
+        // РїСЂРµРѕР±РѕСЂР°Р·РѕРІР°РЅРёСЏ, С‡С‚Рѕ РіР°СЂР°РЅС‚РёСЂРѕРІР°РЅРЅРѕ СЂР°РЅСЊС€Рµ СЃР»РµРґСѓСЋС‰РµРіРѕ
+        // РїРѕРїР°РґР°РЅРёСЏ СЃСЋРґР°
         ADC1_Cmd(ENABLE);
         ADC1_StartConversion();
     }
 }
 
 /*
-* инициализация ножки, таймера для кнопки
+* РёРЅРёС†РёР°Р»РёР·Р°С†РёСЏ РЅРѕР¶РєРё, С‚Р°Р№РјРµСЂР° РґР»СЏ РєРЅРѕРїРєРё
 */
 void buttonInit(void)
 {
-    TIM2_TimeBaseInit(TIM2_PRESCALER_64, 250);      // один тик это 1 мс
+    TIM2_TimeBaseInit(TIM2_PRESCALER_64, 250);      // РѕРґРёРЅ С‚РёРє СЌС‚Рѕ 1 РјСЃ
     TIM2_Cmd(ENABLE);
 
     GPIO_Init(GPIOB, GPIO_PIN_0, GPIO_MODE_IN_FL_NO_IT);
@@ -526,7 +526,7 @@ void buttonInit(void)
 }
 
 /*
-* возращает состояние порта к которому подлючена кнопка
+* РІРѕР·СЂР°С‰Р°РµС‚ СЃРѕСЃС‚РѕСЏРЅРёРµ РїРѕСЂС‚Р° Рє РєРѕС‚РѕСЂРѕРјСѓ РїРѕРґР»СЋС‡РµРЅР° РєРЅРѕРїРєР°
 */
 buttonStates_enum getPinButtonState(void)
 {
